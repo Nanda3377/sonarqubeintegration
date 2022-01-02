@@ -1,38 +1,29 @@
-pipeline
-{
-    agent any 
-    
-    stages
-    {
-     
-     stage ('compile code')
-     {
-         steps
-         {
-             sh 'mvn clean install'
-         }
-     }
-     stage ('test')
-     {
-         steps
-         {
-             sh 'mvn test'
-         }
-     }
-     stage ('find my binary')
-     {
-         steps
-         {
-             sh 'find / -name *.war'
-         }
-     }
-     stage ('deploy')
-     {
-         steps
-         {
-             sh 'cp -R /root/.jenkins/workspace/dpipeline/target/* /opt/apache-tomcat-8.5.3/webapps'
-         }
-     }
-        
+pipeline {
+    agent any
+    stages {
+        stage('SCM') {
+            steps {
+                git url: 'https://github.com/Nanda3377/sonarqubeintegration.git'
+            }
+        }
+        stage('build && SonarQube analysis') {
+            steps {
+                withSonarQubeEnv('http://3.111.51.234:9000/') {
+                    // Optionally use a Maven environment you've configured already
+                    withMaven(maven:'Maven 3.5') {
+                        sh 'mvn clean package sonar:sonar'
+                    }
+                }
+            }
+        }
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+                    // true = set pipeline to UNSTABLE, false = don't
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
     }
 }
