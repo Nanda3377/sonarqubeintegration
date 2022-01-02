@@ -8,7 +8,7 @@ pipeline {
         }
         stage('build && SonarQube analysis') {
             steps {
-                withSonarQubeEnv('http://3.111.51.234:9000/') {
+                withSonarQubeEnv('My SonarQube Server') {
                     // Optionally use a Maven environment you've configured already
                     withMaven(maven:'Maven 3.5') {
                         sh 'mvn clean package sonar:sonar'
